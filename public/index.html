@@ -129,6 +129,7 @@
       border-radius: 20px;
       font-weight: bold;
       margin-top: 10px;
+      font-size: 0.9em;
     }
     .badge.special {
       background: #FF9800;
@@ -159,6 +160,7 @@
       border-radius: 8px;
       margin-bottom: 20px;
       font-size: 0.9em;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -166,24 +168,14 @@
   <div class="container">
     <div class="header">
       <h1>🏨 International Iasi Hotel</h1>
-      <p>Redeem Your Special Promotion</p>
+      <p>Spin to Win Promotion</p>
     </div>
 
     <div class="info">
-      ℹ️ Scan your QR code or enter your unique code below to claim your promotion
+      ℹ️ Enter your email to reveal your random promotion and unlock your reward!
     </div>
 
     <form id="redeemForm">
-      <div class="form-group">
-        <label for="uniqueCode">Unique Code *</label>
-        <input 
-          type="text" 
-          id="uniqueCode" 
-          placeholder="e.g., IASI-1234567890-ABC123" 
-          required
-        >
-      </div>
-
       <div class="form-group">
         <label for="guestEmail">Email Address *</label>
         <input 
@@ -191,21 +183,26 @@
           id="guestEmail" 
           placeholder="your.email@example.com" 
           required
+          autocomplete="email"
         >
       </div>
 
-      <button type="submit">Redeem Promotion</button>
+      <button type="submit">🎉 Spin to Reveal My Promotion</button>
     </form>
 
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <p>Processing your promotion...</p>
+      <p>Spinning the wheel...</p>
     </div>
 
     <div class="result" id="result"></div>
   </div>
 
   <script>
+    // Extract QR code ID from URL or use default test ID
+    const params = new URLSearchParams(window.location.search);
+    const qrCodeId = params.get('id') || 'test-qr-code-id';
+
     const form = document.getElementById('redeemForm');
     const result = document.getElementById('result');
     const loading = document.getElementById('loading');
@@ -213,11 +210,10 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const uniqueCode = document.getElementById('uniqueCode').value.trim();
       const guestEmail = document.getElementById('guestEmail').value.trim();
 
-      if (!uniqueCode || !guestEmail) {
-        showError('Please fill in all fields');
+      if (!guestEmail) {
+        showError('Please enter your email address');
         return;
       }
 
@@ -232,7 +228,7 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            uniqueCode,
+            qrCodeId,
             guestEmail
           })
         });
@@ -255,27 +251,37 @@
 
     function showSuccess(data) {
       let badgeClass = 'badge';
-      if (data.promotion.includes('Better Luck') || data.promotion.includes('Random')) {
+      let icon = '🎟️';
+
+      if (data.promotion.includes('Better Luck')) {
         badgeClass += ' neutral';
+        icon = '🍀';
       } else if (data.promotion.includes('Free')) {
         badgeClass += ' special';
+        icon = '⭐';
+      } else if (data.promotion.includes('20%')) {
+        icon = '🎁';
+      } else if (data.promotion.includes('15%')) {
+        icon = '🎁';
+      } else if (data.promotion.includes('10%')) {
+        icon = '🎟️';
       }
 
       let discountHtml = '';
       if (data.discount) {
-        discountHtml = `<div class="${badgeClass}">${data.discount}% OFF</div>`;
+        discountHtml = `<div class="${badgeClass}">${icon} ${data.discount}% OFF</div>`;
       }
 
       result.innerHTML = `
         <h3>🎉 Congratulations!</h3>
-        <p>${data.message}</p>
+        <p style="font-size: 1.1em; margin-bottom: 20px;">${data.message}</p>
         ${discountHtml}
         <div class="promotion-details">
-          <p><strong>Promotion Type:</strong> ${data.promotion}</p>
-          <p><strong>Description:</strong> ${data.description}</p>
+          <p><strong>Your Reward:</strong> ${data.promotion}</p>
+          <p><strong>Details:</strong> ${data.description}</p>
           ${data.discount ? `<p><strong>Discount:</strong> ${data.discount}%</p>` : ''}
-          <p style="margin-top: 15px; font-size: 0.85em; color: #666;">
-            🔐 This promotion has been securely linked to your email address and can only be used once.
+          <p style="margin-top: 15px; font-size: 0.85em; color: #666; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px;">
+            🔐 This promotion has been securely linked to your email and can only be used once.
           </p>
         </div>
       `;
@@ -288,7 +294,7 @@
         <h3>❌ Oops!</h3>
         <p>${message}</p>
         <p style="margin-top: 15px; font-size: 0.9em;">
-          Please check your code and email, or contact our team for assistance.
+          Please check your email or contact our team for assistance.
         </p>
       `;
       result.className = 'result error';
