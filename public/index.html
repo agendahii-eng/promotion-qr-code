@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>International Iasi Hotel - Redeem Promotion</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+      padding: 40px;
+      text-align: center;
+    }
+    .header {
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2em;
+    }
+    .header p {
+      color: #666;
+      font-size: 1.1em;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 0.95em;
+    }
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.05em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 8px;
+      display: none;
+    }
+    .result.success {
+      background: #e8f5e9;
+      border: 2px solid #4CAF50;
+      color: #2e7d32;
+      display: block;
+    }
+    .result.error {
+      background: #ffebee;
+      border: 2px solid #f44336;
+      color: #c62828;
+      display: block;
+    }
+    .result h3 {
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+    .result p {
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+    .promotion-details {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      text-align: left;
+    }
+    .promotion-details p {
+      margin: 8px 0;
+      font-size: 0.95em;
+    }
+    .badge {
+      display: inline-block;
+      background: #4CAF50;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .badge.special {
+      background: #FF9800;
+    }
+    .badge.neutral {
+      background: #9E9E9E;
+    }
+    .loading {
+      display: none;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .info {
+      background: #e3f2fd;
+      color: #1565c0;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏨 International Iasi Hotel</h1>
+      <p>Redeem Your Special Promotion</p>
+    </div>
+
+    <div class="info">
+      ℹ️ Scan your QR code or enter your unique code below to claim your promotion
+    </div>
+
+    <form id="redeemForm">
+      <div class="form-group">
+        <label for="uniqueCode">Unique Code *</label>
+        <input 
+          type="text" 
+          id="uniqueCode" 
+          placeholder="e.g., IASI-1234567890-ABC123" 
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="guestEmail">Email Address *</label>
+        <input 
+          type="email" 
+          id="guestEmail" 
+          placeholder="your.email@example.com" 
+          required
+        >
+      </div>
+
+      <button type="submit">Redeem Promotion</button>
+    </form>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Processing your promotion...</p>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('redeemForm');
+    const result = document.getElementById('result');
+    const loading = document.getElementById('loading');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const uniqueCode = document.getElementById('uniqueCode').value.trim();
+      const guestEmail = document.getElementById('guestEmail').value.trim();
+
+      if (!uniqueCode || !guestEmail) {
+        showError('Please fill in all fields');
+        return;
+      }
+
+      // Show loading state
+      form.style.display = 'none';
+      loading.style.display = 'block';
+
+      try {
+        const response = await fetch('/api/redeem', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            uniqueCode,
+            guestEmail
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          showError(data.message || 'An error occurred while processing your promotion');
+        } else {
+          showSuccess(data);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Unable to connect to the server. Please try again later.');
+      } finally {
+        loading.style.display = 'none';
+        form.style.display = 'block';
+      }
+    });
+
+    function showSuccess(data) {
+      let badgeClass = 'badge';
+      if (data.promotion.includes('Better Luck') || data.promotion.includes('Random')) {
+        badgeClass += ' neutral';
+      } else if (data.promotion.includes('Free')) {
+        badgeClass += ' special';
+      }
+
+      let discountHtml = '';
+      if (data.discount) {
+        discountHtml = `<div class="${badgeClass}">${data.discount}% OFF</div>`;
+      }
+
+      result.innerHTML = `
+        <h3>🎉 Congratulations!</h3>
+        <p>${data.message}</p>
+        ${discountHtml}
+        <div class="promotion-details">
+          <p><strong>Promotion Type:</strong> ${data.promotion}</p>
+          <p><strong>Description:</strong> ${data.description}</p>
+          ${data.discount ? `<p><strong>Discount:</strong> ${data.discount}%</p>` : ''}
+          <p style="margin-top: 15px; font-size: 0.85em; color: #666;">
+            🔐 This promotion has been securely linked to your email address and can only be used once.
+          </p>
+        </div>
+      `;
+      result.className = 'result success';
+      result.style.display = 'block';
+    }
+
+    function showError(message) {
+      result.innerHTML = `
+        <h3>❌ Oops!</h3>
+        <p>${message}</p>
+        <p style="margin-top: 15px; font-size: 0.9em;">
+          Please check your code and email, or contact our team for assistance.
+        </p>
+      `;
+      result.className = 'result error';
+      result.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
